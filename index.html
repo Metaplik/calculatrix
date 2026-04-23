@@ -2,8 +2,6 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-
-<!-- 📱 MOBILE FIX -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Calculatrix</title>
@@ -36,7 +34,7 @@ canvas {
   align-items: center;
 }
 
-/* 💎 TITRE 3D */
+/* TITLE 3D */
 .title {
   color: #00ff88;
   font-size: 34px;
@@ -61,7 +59,7 @@ canvas {
   max-width: 320px;
 }
 
-/* SCREEN */
+/* DISPLAY */
 #display {
   width: 100%;
   height: 70px;
@@ -75,17 +73,15 @@ canvas {
   margin-bottom: 15px;
 }
 
-/* GRID RESPONSIVE */
+/* BUTTON GRID */
 .buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-  width: 100%;
 }
 
-/* BUTTON */
+/* BUTTONS */
 button {
-  width: 100%;
   height: 60px;
   border-radius: 15px;
   border: none;
@@ -145,7 +141,7 @@ button:hover {
       <button onclick="press('0')">0</button>
       <button onclick="press('.')">.</button>
       <button class="equal" onclick="calculate()">=</button>
-      <button onclick="press('+')">+</button>
+      <button onclick="press('+'); plusClick()">+</button>
 
       <button class="clear" onclick="clearDisplay()">C</button>
     </div>
@@ -154,9 +150,7 @@ button:hover {
 
 <script>
 
-/* =========================
-   🌧 MATRIX EFFECT
-========================= */
+/* ================= MATRIX ================= */
 const canvas = document.getElementById("matrix");
 const ctx = canvas.getContext("2d");
 
@@ -192,9 +186,7 @@ function drawMatrix() {
 
 setInterval(drawMatrix, 33);
 
-/* =========================
-   🔐 CODE SECRET
-========================= */
+/* ================= CODE SECRET ================= */
 let savedCode = localStorage.getItem("code");
 
 if (!savedCode) {
@@ -204,9 +196,7 @@ if (!savedCode) {
   }
 }
 
-/* =========================
-   CALCULATRICE
-========================= */
+/* ================= CALCUL ================= */
 let input = "";
 
 function press(val) {
@@ -243,33 +233,29 @@ function clearDisplay() {
   document.getElementById("display").value = "";
 }
 
-/* =========================
-   🔁 RESET SECRET (4x C + +)
-========================= */
-let cCount = 0;
+/* ================= RESET 5x + ================= */
+let plusCount = 0;
 
 document.addEventListener("keydown", function(e) {
-
-  if (e.key.toLowerCase() === "c") {
-    cCount++;
-
-    if (cCount === 4) {
-      cCount = 4;
-    }
-  }
-
   if (e.key === "+") {
-    if (cCount === 4) {
-      resetAll();
-      cCount = 0;
-    }
-  }
-
-  if (e.key !== "c" && e.key !== "+") {
-    cCount = 0;
+    plusClick();
   }
 });
 
+function plusClick() {
+  plusCount++;
+
+  if (plusCount === 5) {
+    resetAll();
+    plusCount = 0;
+  }
+
+  setTimeout(() => {
+    plusCount = 0;
+  }, 2000);
+}
+
+/* ================= RESET ================= */
 function resetAll() {
   localStorage.removeItem("code");
   alert("RESET CODE EFFECTUÉ");
