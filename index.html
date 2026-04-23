@@ -2,18 +2,22 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+
+<!-- 📱 MOBILE FIX -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Calculatrix</title>
 
 <style>
 body {
   margin: 0;
   height: 100vh;
-  background: black;
   overflow: hidden;
   font-family: Arial;
+  background: black;
 }
 
-/* MATRIX BACKGROUND */
+/* MATRIX */
 canvas {
   position: fixed;
   top: 0;
@@ -21,80 +25,93 @@ canvas {
   z-index: 0;
 }
 
-/* TITLE */
+/* CONTAINER */
+.container {
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 💎 TITRE 3D */
 .title {
-  position: absolute;
-  top: 20px;
-  width: 100%;
-  text-align: center;
-  font-size: 40px;
   color: #00ff88;
-  text-shadow: 0 0 20px #00ff88;
-  z-index: 2;
+  font-size: 34px;
+  margin-bottom: 20px;
+  letter-spacing: 3px;
+
+  text-shadow:
+    1px 1px 0 #003b1f,
+    2px 2px 0 #002814,
+    3px 3px 5px rgba(0,0,0,0.8),
+    0 0 10px #00ff88;
 }
 
 /* CALCULATOR */
 .calculator {
-  position: relative;
-  z-index: 2;
-  margin: auto;
-  top: 80px;
-  width: 320px;
-  background: rgba(0,0,0,0.6);
+  background: rgba(20,20,20,0.85);
   backdrop-filter: blur(15px);
   border-radius: 20px;
   padding: 20px;
-  box-shadow: 0 0 30px rgba(0,255,0,0.3);
+  box-shadow: 0 0 30px rgba(0,255,100,0.3);
+  width: 90%;
+  max-width: 320px;
 }
 
+/* SCREEN */
 #display {
   width: 100%;
-  height: 60px;
+  height: 70px;
   background: black;
   border: none;
   color: #00ff88;
   font-size: 28px;
   text-align: right;
   padding: 10px;
-  margin-bottom: 10px;
+  border-radius: 10px;
+  margin-bottom: 15px;
 }
 
-/* BUTTONS */
+/* GRID RESPONSIVE */
 .buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-}
-
-button {
-  height: 60px;
-  border: none;
-  border-radius: 12px;
-  font-size: 22px;
-  color: #00ff88;
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(6px);
-  box-shadow: 0 0 10px rgba(0,255,0,0.2);
-}
-
-.equal { background: rgba(0,255,0,0.3); }
-.clear { background: rgba(255,0,0,0.3); }
-
-/* SETUP SCREEN */
-#setup {
-  position: fixed;
-  z-index: 3;
-  background: black;
   width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
-#setup input {
-  padding: 15px;
+/* BUTTON */
+button {
+  width: 100%;
+  height: 60px;
+  border-radius: 15px;
+  border: none;
   font-size: 20px;
+  color: #00ff88;
+  cursor: pointer;
+
+  background: rgba(0,255,100,0.05);
+  box-shadow:
+    inset 0 0 5px rgba(0,255,100,0.2),
+    0 0 10px rgba(0,255,100,0.2);
+  transition: 0.2s;
+}
+
+button:hover {
+  background: rgba(0,255,100,0.2);
+  transform: scale(1.05);
+}
+
+.equal {
+  background: rgba(0,255,100,0.3);
+}
+
+.clear {
+  background: rgba(255,0,0,0.3);
+  color: white;
 }
 </style>
 </head>
@@ -103,48 +120,43 @@ button {
 
 <canvas id="matrix"></canvas>
 
-<div class="title">CALCULATRIX</div>
+<div class="container">
+  <div class="title">CALCULATRIX</div>
 
-<!-- SETUP CODE -->
-<div id="setup">
-  <div>
-    <p style="color:#00ff88;">Choisis ton code secret</p>
-    <input type="password" id="newCode">
-    <button onclick="saveCode()">Valider</button>
-  </div>
-</div>
+  <div class="calculator">
+    <input id="display" readonly>
 
-<!-- CALCULATOR -->
-<div class="calculator">
-  <input id="display" readonly>
+    <div class="buttons">
+      <button onclick="press('7')">7</button>
+      <button onclick="press('8')">8</button>
+      <button onclick="press('9')">9</button>
+      <button onclick="press('/')">÷</button>
 
-  <div class="buttons">
-    <button onclick="press('7')">7</button>
-    <button onclick="press('8')">8</button>
-    <button onclick="press('9')">9</button>
-    <button onclick="press('/')">÷</button>
+      <button onclick="press('4')">4</button>
+      <button onclick="press('5')">5</button>
+      <button onclick="press('6')">6</button>
+      <button onclick="press('*')">×</button>
 
-    <button onclick="press('4')">4</button>
-    <button onclick="press('5')">5</button>
-    <button onclick="press('6')">6</button>
-    <button onclick="press('*')">×</button>
+      <button onclick="press('1')">1</button>
+      <button onclick="press('2')">2</button>
+      <button onclick="press('3')">3</button>
+      <button onclick="press('-')">−</button>
 
-    <button onclick="press('1')">1</button>
-    <button onclick="press('2')">2</button>
-    <button onclick="press('3')">3</button>
-    <button onclick="press('-')">−</button>
+      <button onclick="press('0')">0</button>
+      <button onclick="press('.')">.</button>
+      <button class="equal" onclick="calculate()">=</button>
+      <button onclick="press('+')">+</button>
 
-    <button onclick="press('0')">0</button>
-    <button onclick="press('.')">.</button>
-    <button class="equal" onclick="calculate()">=</button>
-    <button onclick="press('+')">+</button>
-
-    <button class="clear" onclick="clearDisplay()">C</button>
+      <button class="clear" onclick="clearDisplay()">C</button>
+    </div>
   </div>
 </div>
 
 <script>
-// MATRIX EFFECT
+
+/* =========================
+   🌧 MATRIX EFFECT
+========================= */
 const canvas = document.getElementById("matrix");
 const ctx = canvas.getContext("2d");
 
@@ -155,43 +167,46 @@ const letters = "01ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const fontSize = 14;
 const columns = canvas.width / fontSize;
 
-const drops = [];
-for (let i = 0; i < columns; i++) drops[i] = 1;
+const drops = Array.from({length: columns}).fill(1);
 
-function draw() {
+function drawMatrix() {
   ctx.fillStyle = "rgba(0,0,0,0.05)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  ctx.fillStyle = "#0f0";
+  ctx.fillStyle = "#00ff88";
   ctx.font = fontSize + "px monospace";
 
-  for (let i = 0; i < drops.length; i++) {
-    const text = letters[Math.floor(Math.random() * letters.length)];
-    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+  drops.forEach((y, i) => {
+    const text = letters[Math.floor(Math.random()*letters.length)];
+    const x = i * fontSize;
 
-    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975)
+    ctx.fillText(text, x, y * fontSize);
+
+    if (y * fontSize > canvas.height && Math.random() > 0.975) {
       drops[i] = 0;
+    }
 
     drops[i]++;
+  });
+}
+
+setInterval(drawMatrix, 33);
+
+/* =========================
+   🔐 CODE SECRET
+========================= */
+let savedCode = localStorage.getItem("code");
+
+if (!savedCode) {
+  let newCode = prompt("Choisis ton code secret");
+  if (newCode) {
+    localStorage.setItem("code", newCode);
   }
 }
 
-setInterval(draw, 33);
-
-// 🔐 SETUP CODE
-if (localStorage.getItem("code")) {
-  document.getElementById("setup").style.display = "none";
-}
-
-function saveCode() {
-  let code = document.getElementById("newCode").value;
-  if (code) {
-    localStorage.setItem("code", code);
-    document.getElementById("setup").style.display = "none";
-  }
-}
-
-// CALCULATOR
+/* =========================
+   CALCULATRICE
+========================= */
 let input = "";
 
 function press(val) {
@@ -200,15 +215,16 @@ function press(val) {
 }
 
 function calculate() {
-  let saved = localStorage.getItem("code");
+  let savedCode = localStorage.getItem("code");
 
-  if (input === saved) {
+  if (input === savedCode) {
     window.location.href = "app.html";
     return;
   }
 
   if (input === "0000") {
     localStorage.removeItem("code");
+    alert("RESET EFFECTUÉ");
     location.reload();
     return;
   }
@@ -217,8 +233,8 @@ function calculate() {
     input = eval(input).toString();
     document.getElementById("display").value = input;
   } catch {
-    input = "";
     document.getElementById("display").value = "Erreur";
+    input = "";
   }
 }
 
@@ -226,6 +242,40 @@ function clearDisplay() {
   input = "";
   document.getElementById("display").value = "";
 }
+
+/* =========================
+   🔁 RESET SECRET (4x C + +)
+========================= */
+let cCount = 0;
+
+document.addEventListener("keydown", function(e) {
+
+  if (e.key.toLowerCase() === "c") {
+    cCount++;
+
+    if (cCount === 4) {
+      cCount = 4;
+    }
+  }
+
+  if (e.key === "+") {
+    if (cCount === 4) {
+      resetAll();
+      cCount = 0;
+    }
+  }
+
+  if (e.key !== "c" && e.key !== "+") {
+    cCount = 0;
+  }
+});
+
+function resetAll() {
+  localStorage.removeItem("code");
+  alert("RESET CODE EFFECTUÉ");
+  window.location.href = "index.html";
+}
+
 </script>
 
 </body>
