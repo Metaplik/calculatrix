@@ -30,57 +30,52 @@ canvas {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
 }
 
-/* TITLE 3D */
-.title {
-  color: #00ff88;
-  font-size: 34px;
-  margin-bottom: 20px;
-  letter-spacing: 3px;
-
-  text-shadow:
-    1px 1px 0 #003b1f,
-    2px 2px 0 #002814,
-    3px 3px 5px rgba(0,0,0,0.8),
-    0 0 10px #00ff88;
+/* LOGO = COMME AVANT (JUSTE UN ESPACE) */
+.logo-space {
+  height: 80px;
+  width: 100%;
 }
 
 /* CALCULATOR */
 .calculator {
-  background: rgba(20,20,20,0.85);
-  backdrop-filter: blur(15px);
-  border-radius: 20px;
+  background: #0a0a0a;
+  border-radius: 25px;
   padding: 20px;
-  box-shadow: 0 0 30px rgba(0,255,100,0.3);
   width: 90%;
-  max-width: 320px;
+  max-width: 330px;
+
+  box-shadow:
+    0 0 10px #00ff88,
+    0 0 25px #00ff88;
 }
 
 /* DISPLAY */
 #display {
   width: 100%;
-  height: 70px;
-  background: black;
+  height: 75px;
+  background: #000;
   border: none;
   color: #00ff88;
-  font-size: 28px;
+  font-size: 30px;
   text-align: right;
   padding: 10px;
-  border-radius: 10px;
+  border-radius: 12px;
   margin-bottom: 15px;
+
+  text-shadow: 0 0 10px #00ff88;
 }
 
-/* BUTTON GRID */
+/* BUTTONS */
 .buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
 
-/* BUTTONS */
 button {
   height: 60px;
   border-radius: 15px;
@@ -89,25 +84,27 @@ button {
   color: #00ff88;
   cursor: pointer;
 
-  background: rgba(0,255,100,0.05);
+  background: #111;
+  text-shadow: 0 0 5px #00ff88;
+
   box-shadow:
-    inset 0 0 5px rgba(0,255,100,0.2),
-    0 0 10px rgba(0,255,100,0.2);
-  transition: 0.2s;
+    inset 0 0 5px #00ff88,
+    0 0 10px #00ff88;
+
+  transition: 0.1s;
 }
 
-button:hover {
-  background: rgba(0,255,100,0.2);
-  transform: scale(1.05);
+button:active {
+  transform: scale(0.92);
 }
 
 .equal {
-  background: rgba(0,255,100,0.3);
+  background: #002f1f;
 }
 
 .clear {
-  background: rgba(255,0,0,0.3);
-  color: white;
+  background: #300000;
+  color: #ff4444;
 }
 </style>
 </head>
@@ -117,7 +114,9 @@ button:hover {
 <canvas id="matrix"></canvas>
 
 <div class="container">
-  <div class="title">CALCULATRIX</div>
+
+  <!-- LOGO VIDE (comme ton code original) -->
+  <div class="logo-space"></div>
 
   <div class="calculator">
     <input id="display" readonly>
@@ -141,7 +140,7 @@ button:hover {
       <button onclick="press('0')">0</button>
       <button onclick="press('.')">.</button>
       <button class="equal" onclick="calculate()">=</button>
-      <button onclick="press('+'); plusClick()">+</button>
+      <button onclick="press('+')">+</button>
 
       <button class="clear" onclick="clearDisplay()">C</button>
     </div>
@@ -150,18 +149,17 @@ button:hover {
 
 <script>
 
-/* ================= MATRIX ================= */
+/* MATRIX */
 const canvas = document.getElementById("matrix");
 const ctx = canvas.getContext("2d");
 
-canvas.height = window.innerHeight;
 canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
 const letters = "01ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const fontSize = 14;
-const columns = canvas.width / fontSize;
-
-const drops = Array.from({length: columns}).fill(1);
+const columns = Math.floor(canvas.width / fontSize);
+const drops = Array(columns).fill(1);
 
 function drawMatrix() {
   ctx.fillStyle = "rgba(0,0,0,0.05)";
@@ -170,33 +168,20 @@ function drawMatrix() {
   ctx.fillStyle = "#00ff88";
   ctx.font = fontSize + "px monospace";
 
-  drops.forEach((y, i) => {
-    const text = letters[Math.floor(Math.random()*letters.length)];
-    const x = i * fontSize;
+  for (let i = 0; i < drops.length; i++) {
+    const text = letters[Math.floor(Math.random() * letters.length)];
+    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
 
-    ctx.fillText(text, x, y * fontSize);
-
-    if (y * fontSize > canvas.height && Math.random() > 0.975) {
+    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
       drops[i] = 0;
     }
-
     drops[i]++;
-  });
+  }
 }
 
 setInterval(drawMatrix, 33);
 
-/* ================= CODE SECRET ================= */
-let savedCode = localStorage.getItem("code");
-
-if (!savedCode) {
-  let newCode = prompt("Choisis ton code secret");
-  if (newCode) {
-    localStorage.setItem("code", newCode);
-  }
-}
-
-/* ================= CALCUL ================= */
+/* CALCUL */
 let input = "";
 
 function press(val) {
@@ -205,20 +190,6 @@ function press(val) {
 }
 
 function calculate() {
-  let savedCode = localStorage.getItem("code");
-
-  if (input === savedCode) {
-    window.location.href = "app.html";
-    return;
-  }
-
-  if (input === "0000") {
-    localStorage.removeItem("code");
-    alert("RESET EFFECTUÉ");
-    location.reload();
-    return;
-  }
-
   try {
     input = eval(input).toString();
     document.getElementById("display").value = input;
@@ -231,35 +202,6 @@ function calculate() {
 function clearDisplay() {
   input = "";
   document.getElementById("display").value = "";
-}
-
-/* ================= RESET 5x + ================= */
-let plusCount = 0;
-
-document.addEventListener("keydown", function(e) {
-  if (e.key === "+") {
-    plusClick();
-  }
-});
-
-function plusClick() {
-  plusCount++;
-
-  if (plusCount === 5) {
-    resetAll();
-    plusCount = 0;
-  }
-
-  setTimeout(() => {
-    plusCount = 0;
-  }, 2000);
-}
-
-/* ================= RESET ================= */
-function resetAll() {
-  localStorage.removeItem("code");
-  alert("RESET CODE EFFECTUÉ");
-  window.location.href = "index.html";
 }
 
 </script>
