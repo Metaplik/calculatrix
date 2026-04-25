@@ -392,6 +392,8 @@ function addConnection(conn) {
             addMessageToChat(msg, "Systeme", false);
             if (isHost) broadcast(data, conn);
         }
+        else if (data.type === 'ping') {
+}
     });
     conn.on('close', function() {
         connections = connections.filter(c => c !== conn);
@@ -566,7 +568,24 @@ fileInput.addEventListener('change', function() {
 
 window.joinRoom = joinRoom;
 window.openLightbox = openLightbox;
-window.addEventListener('beforeunload', function() { if (localStream) localStream.getTracks().forEach(t => t.stop()); if (peer) peer.destroy(); });
+window.addEventListener('beforeunload', function() { 
+    if (localStream) localStream.getTracks().forEach(t => t.stop()); 
+    if (peer) peer.destroy(); 
+});
+
+// ===== PING 20 secondes =====
+setInterval(function() {
+    if (connections.length > 0) {
+        var payload = { type: 'ping' };
+
+        if (isHost) {
+            broadcast(payload);
+        } else if (connections[0] && connections[0].open) {
+            connections[0].send(payload);
+        }
+    }
+}, 20000);
+
 </script>
 </body>
 </html>
