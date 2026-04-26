@@ -1127,7 +1127,6 @@ function addConnection(conn) {
             addMessageToChat(msg, "SYS", false);
             if (isHost) broadcast(data, conn);
         }
-        else if (data.type === 'ping') {}
     });
     conn.on('close', function() {
         connections = connections.filter(c => c !== conn);
@@ -1297,16 +1296,6 @@ fileInput.addEventListener('change', function() {
     reader.readAsDataURL(file);
     fileInput.value = '';
 });
-
-// ===== PING =====
-setInterval(function() {
-    if (connections.length > 0) {
-        var payload = { type: 'ping' };
-        if (isHost) broadcast(payload);
-        else if (connections[0] && connections[0].open) connections[0].send(payload);
-    }
-}, 20000);
-
 window.joinRoom = joinRoom;
 window.openLightbox = openLightbox;
 window.addEventListener('beforeunload', function() {
