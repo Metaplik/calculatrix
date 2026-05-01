@@ -69,7 +69,6 @@
     align-items: center;
     padding: 8px 16px 8px;
     border-bottom: 1px solid #1c1c1c;
-    gap: 0;
   }
 
   .toolbar-btn {
@@ -131,7 +130,7 @@
   }
   .btn.equals:active { background: #17a349; }
 
-  /* ── MODALS ── */
+  /* MODALS */
   .modal-overlay {
     display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,0.7); z-index: 100;
@@ -144,14 +143,8 @@
     border-radius: 20px 20px 0 0; padding: 20px;
     max-height: 70vh; overflow-y: auto; color: #fff;
   }
-  .modal h2 {
-    font-size: 18px; font-weight: 500;
-    margin-bottom: 16px; color: #1db954;
-  }
-  .modal-close {
-    float: right; cursor: pointer;
-    color: #888; font-size: 20px; line-height: 1; margin-top: -4px;
-  }
+  .modal h2 { font-size: 18px; font-weight: 500; margin-bottom: 16px; color: #1db954; }
+  .modal-close { float: right; cursor: pointer; color: #888; font-size: 20px; line-height: 1; margin-top: -4px; }
 
   .history-item { padding: 12px 0; border-bottom: 1px solid #2a2a2a; cursor: pointer; }
   .history-item:last-child { border-bottom: none; }
@@ -169,55 +162,39 @@
   .conv-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
   .conv-row input {
     flex: 1; background: #2a2a2a; border: none;
-    border-radius: 10px; padding: 10px 14px;
-    color: #fff; font-size: 18px; outline: none;
+    border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 18px; outline: none;
   }
   .conv-row select {
     flex: 1; background: #2a2a2a; border: none;
-    border-radius: 10px; padding: 10px 10px;
-    color: #fff; font-size: 14px; outline: none;
+    border-radius: 10px; padding: 10px; color: #fff; font-size: 14px; outline: none;
   }
   .conv-arrow { color: #1db954; font-size: 22px; text-align: center; margin: 4px 0; }
 
-  /* ── POPUP CODE ── */
+  /* POPUP CODE */
   #codeModal .modal { text-align: center; }
   #codeModal h2 { text-align: center; }
 
   .code-display {
-    font-size: 36px;
-    letter-spacing: 8px;
-    color: #fff;
-    min-height: 52px;
-    text-align: center;
-    margin: 8px 0 4px;
-    font-weight: 300;
+    font-size: 36px; letter-spacing: 8px; color: #fff;
+    min-height: 52px; text-align: center;
+    margin: 8px 0 4px; font-weight: 300;
   }
-  .code-hint {
-    color: #555;
-    font-size: 13px;
-    margin-bottom: 18px;
-    min-height: 18px;
-  }
+  .code-hint { color: #555; font-size: 13px; margin-bottom: 18px; min-height: 18px; }
+
   .code-keypad {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 4px;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 12px; margin-bottom: 4px;
   }
   .code-btn {
-    height: 58px;
-    border-radius: 14px; border: none;
-    font-size: 24px; font-weight: 400;
-    cursor: pointer;
+    height: 58px; border-radius: 14px; border: none;
+    font-size: 24px; font-weight: 400; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     background: #2a2a2a; color: #fff;
     transition: background 0.12s, transform 0.08s;
     outline: none; user-select: none;
   }
   .code-btn:active { transform: scale(0.95); background: #333; }
-  .code-btn.action-ok {
-    background: #1db954; color: #fff; font-size: 18px; font-weight: 600;
-  }
+  .code-btn.action-ok { background: #1db954; color: #fff; font-size: 18px; font-weight: 600; }
   .code-btn.action-ok:active { background: #17a349; }
   .code-btn.action-del { background: transparent; color: #1db954; font-size: 22px; }
 
@@ -293,7 +270,7 @@
   </div>
 </div>
 
-<!-- MODALS CLASSIQUES -->
+<!-- MODALS -->
 <div class="modal-overlay" id="historyModal">
   <div class="modal">
     <span class="modal-close" id="closeHistory">✕</span>
@@ -335,7 +312,7 @@
   </div>
 </div>
 
-<!-- POPUP CODE SECRET -->
+<!-- POPUP CODE -->
 <div class="modal-overlay" id="codeModal">
   <div class="modal">
     <h2 id="codeTitle">Choisissez votre code</h2>
@@ -359,35 +336,20 @@
 </div>
 
 <script>
-// ══════════════════════════
-//  SYSTÈME CODE SECRET
-// ══════════════════════════
 const STORAGE_KEY = 'calc_secret_pin';
 
-let codeStep   = '';
-let codeBuffer = '';
-let codeFirst  = '';
-
+// ── POPUP CODE ──
 const codeModal   = document.getElementById('codeModal');
 const codeDisplay = document.getElementById('codeDisplay');
 const codeHint    = document.getElementById('codeHint');
 const codeTitle   = document.getElementById('codeTitle');
+let codeBuffer = '';
 
-function openCodeModal(step) {
-  codeStep = step;
+function openCodeModal(isReset) {
   codeBuffer = '';
-  codeFirst  = '';
   codeDisplay.textContent = '';
-  if (step === 'create') {
-    codeTitle.textContent = 'Choisissez votre code';
-    codeHint.textContent  = 'Entrez autant de chiffres que vous souhaitez';
-  } else if (step === 'confirm') {
-    codeTitle.textContent = 'Confirmez votre code';
-    codeHint.textContent  = 'Répétez le même code';
-  } else {
-    codeTitle.textContent = 'Code secret';
-    codeHint.textContent  = 'Entrez votre code pour accéder';
-  }
+  codeTitle.textContent = isReset ? 'Nouveau code' : 'Choisissez votre code';
+  codeHint.textContent  = 'Entrez autant de chiffres que vous souhaitez';
   codeModal.classList.add('open');
 }
 
@@ -409,67 +371,28 @@ document.getElementById('codeDel').addEventListener('click', () => {
 });
 
 document.getElementById('codeOk').addEventListener('click', () => {
-  if (!codeBuffer) return;
-
-  if (codeStep === 'create') {
-    codeFirst  = codeBuffer;
-    codeBuffer = '';
-    codeDisplay.textContent = '';
-    codeStep = 'confirm';
-    codeTitle.textContent = 'Confirmez votre code';
-    codeHint.textContent  = 'Répétez le même code';
-    return;
-  }
-
-  if (codeStep === 'confirm') {
-    if (codeBuffer === codeFirst) {
-      localStorage.setItem(STORAGE_KEY, codeBuffer);
-      closeCodeModal();
-    } else {
-      codeDisplay.classList.add('shake');
-      setTimeout(() => codeDisplay.classList.remove('shake'), 350);
-      codeHint.textContent = 'Codes différents — recommencez';
-      codeBuffer = ''; codeFirst = '';
-      codeDisplay.textContent = '';
-      codeStep = 'create';
-      codeTitle.textContent = 'Choisissez votre code';
-    }
-    return;
-  }
-
-  // unlock
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (codeBuffer === saved) {
-    closeCodeModal();
-    window.location.href = 'app.html';
-  } else {
-    codeDisplay.classList.add('shake');
-    setTimeout(() => codeDisplay.classList.remove('shake'), 350);
-    codeHint.textContent = 'Code incorrect';
-    codeBuffer = '';
-    codeDisplay.textContent = '';
-  }
+  if (!codeBuffer) { codeHint.textContent = 'Entrez au moins un chiffre'; return; }
+  // Sauvegarde et on atterrit directement sur la calculatrice
+  localStorage.setItem(STORAGE_KEY, codeBuffer);
+  closeCodeModal();
 });
 
 // Empêche fermeture en cliquant dehors
 codeModal.addEventListener('click', e => { if (e.target === codeModal) e.stopPropagation(); });
 
-// Au démarrage : popup si pas de code encore
+// Première ouverture : popup si aucun code défini
 window.addEventListener('load', () => {
-  if (!localStorage.getItem(STORAGE_KEY)) openCodeModal('create');
+  if (!localStorage.getItem(STORAGE_KEY)) openCodeModal(false);
 });
 
-// ══════════════════════════
-//  CALCULATRICE
-// ══════════════════════════
+// ── CALCULATRICE ──
 let current    = '';
 let expression = '';
 let justEvaled = false;
 let openParens = 0;
 let history    = [];
-
-let secretBuf = '';   // chiffres tapés (potentiel code)
-let plusCount = 0;    // + consécutifs pour séquence reset
+let secretBuf  = '';   // chiffres tapés seuls (potentiel code)
+let plusCount  = 0;    // + consécutifs pour séquence reset
 
 const displayText = document.getElementById('displayText');
 const mainDisplay = document.getElementById('mainDisplay');
@@ -489,12 +412,12 @@ function appendToExpr(ch) {
   exprEl.textContent = expression;
 }
 
-// Numbers
 document.querySelectorAll('[data-num]').forEach(btn => {
   btn.addEventListener('click', () => {
     const n = btn.dataset.num;
     plusCount = 0;
 
+    // Accumulation code secret
     if (justEvaled || expression === '') secretBuf = n;
     else secretBuf += n;
 
@@ -515,7 +438,6 @@ document.querySelectorAll('[data-num]').forEach(btn => {
   });
 });
 
-// Decimal
 document.getElementById('btnDot').addEventListener('click', () => {
   plusCount = 0; secretBuf = '';
   if (current.includes('.')) return;
@@ -524,7 +446,6 @@ document.getElementById('btnDot').addEventListener('click', () => {
   displayText.textContent = current.replace('.', ',');
 });
 
-// Operators
 function addOperator(op, display) {
   justEvaled = false;
   expression += op; exprEl.textContent = expression;
@@ -540,7 +461,6 @@ document.getElementById('btnSub').addEventListener('click', () => addOperator('-
 document.getElementById('btnMul').addEventListener('click', () => addOperator('*', '×'));
 document.getElementById('btnDiv').addEventListener('click', () => addOperator('/', '÷'));
 
-// Percent
 document.getElementById('btnPercent').addEventListener('click', () => {
   plusCount = 0; secretBuf = '';
   if (current === '' || current === '0') return;
@@ -550,7 +470,6 @@ document.getElementById('btnPercent').addEventListener('click', () => {
   updateDisplay(current.replace('.', ','));
 });
 
-// Sign
 document.getElementById('btnSign').addEventListener('click', () => {
   plusCount = 0;
   if (!current || current === '0') return;
@@ -559,7 +478,6 @@ document.getElementById('btnSign').addEventListener('click', () => {
   updateDisplay(current.replace('.', ',')); exprEl.textContent = expression;
 });
 
-// Parens
 document.getElementById('btnParen').addEventListener('click', () => {
   plusCount = 0; secretBuf = '';
   if (openParens === 0 || /[+\-*/( ]$/.test(expression) || expression === '') {
@@ -569,7 +487,6 @@ document.getElementById('btnParen').addEventListener('click', () => {
   }
 });
 
-// Backspace
 function doBackspace() {
   plusCount = 0; secretBuf = '';
   if (justEvaled) { clear(); return; }
@@ -585,7 +502,6 @@ function doBackspace() {
 }
 document.getElementById('btnBack').addEventListener('click', doBackspace);
 
-// Clear
 function clear() {
   current = ''; expression = ''; justEvaled = false; openParens = 0;
   secretBuf = ''; plusCount = 0;
@@ -594,26 +510,25 @@ function clear() {
 }
 document.getElementById('btnC').addEventListener('click', clear);
 
-// Equals
 document.getElementById('btnEq').addEventListener('click', () => {
 
-  // 1. Séquence reset : 5+ consécutifs puis =
+  // Séquence reset : 5 × "+" puis "="
   if (plusCount >= 5) {
     clear();
     localStorage.removeItem(STORAGE_KEY);
-    openCodeModal('create');
+    openCodeModal(true);
     return;
   }
 
-  // 2. Code secret : chiffres tapés seuls = code sauvegardé
+  // Code secret : chiffres tapés = code sauvegardé → redirect app.html
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved && secretBuf === saved && expression === saved) {
     clear();
-    openCodeModal('unlock');
+    window.location.href = 'app.html';
     return;
   }
 
-  // 3. Calcul normal
+  // Calcul normal
   if (expression === '') return;
   let expr = expression;
   let op = openParens;
@@ -640,7 +555,6 @@ document.getElementById('btnEq').addEventListener('click', () => {
   secretBuf = ''; plusCount = 0;
 });
 
-// Keyboard
 document.addEventListener('keydown', e => {
   if (codeModal.classList.contains('open')) return;
   if (e.key >= '0' && e.key <= '9') document.querySelector(`[data-num="${e.key}"]`)?.click();
@@ -658,8 +572,7 @@ document.addEventListener('keydown', e => {
 
 // History
 document.getElementById('btnHistory').addEventListener('click', () => {
-  renderHistory();
-  document.getElementById('historyModal').classList.add('open');
+  renderHistory(); document.getElementById('historyModal').classList.add('open');
 });
 document.getElementById('closeHistory').addEventListener('click', () =>
   document.getElementById('historyModal').classList.remove('open'));
@@ -730,8 +643,7 @@ function convertUnits() {
     if (from==='C') c=val; else if (from==='F') c=(val-32)*5/9; else c=val-273.15;
     if (to==='C') result=c; else if (to==='F') result=c*9/5+32; else result=c+273.15;
   } else {
-    const table = toSI[currentCat];
-    result = val * table[from] / table[to];
+    result = val * toSI[currentCat][from] / toSI[currentCat][to];
   }
   out.value = +result.toFixed(8);
 }
