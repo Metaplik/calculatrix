@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Calculatrice</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+    overflow: hidden;
+  }
+
+  .phone {
+    width: 360px;
+    height: 780px;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .display {
+    width: 100%;
+    height: 200px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 20px 14px;
+    overflow: hidden;
+  }
+
+  .expression {
+    color: #888;
+    font-size: 18px;
+    text-align: right;
+    height: 26px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-bottom: 6px;
+  }
+
+  .main-display {
+    color: #fff;
+    font-size: 52px;
+    font-weight: 300;
+    text-align: right;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    line-height: 1.1;
+    transition: color 0.2s;
+    min-height: 60px;
+  }
+
+  .main-display.result { color: #1db954; }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px 8px;
+    border-bottom: 1px solid #1c1c1c;
+    gap: 0;
+  }
+
+  .toolbar-btn {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    padding: 8px 0;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+  .toolbar-btn:hover { background: #1a1a1a; }
+  .toolbar-btn svg {
+    width: 22px; height: 22px;
+    stroke: #666; fill: none;
+    stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  .toolbar-spacer { flex: 3; }
+
+  .backspace-btn {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    padding: 8px 0;
+  }
+  .backspace-btn svg {
+    width: 26px; height: 22px;
+    stroke: #1db954; fill: none;
+    stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  .keypad {
+    padding: 8px 12px 16px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .btn {
+    width: 72px; height: 72px;
+    border-radius: 50%; border: none;
+    font-size: 26px; font-weight: 400;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    background: #1e1e1e; color: #fff;
+    transition: background 0.12s, transform 0.08s;
+    outline: none; user-select: none; margin: 0 auto;
+  }
+  .btn:active { transform: scale(0.9); background: #2a2a2a; }
+  .btn.green { color: #1db954; font-size: 30px; }
+  .btn.red   { color: #e05c5c; font-size: 32px; font-weight: 600; }
+  .btn.equals {
+    background: #1db954; color: #fff;
+    font-size: 34px; width: 72px; height: 72px; border-radius: 50%;
+  }
+  .btn.equals:active { background: #17a349; }
+
+  /* ── MODALS ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 100;
+    justify-content: center; align-items: flex-end;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: #1a1a1a; width: 360px;
+    border-radius: 20px 20px 0 0; padding: 20px;
+    max-height: 70vh; overflow-y: auto; color: #fff;
+  }
+  .modal h2 {
+    font-size: 18px; font-weight: 500;
+    margin-bottom: 16px; color: #1db954;
+  }
+  .modal-close {
+    float: right; cursor: pointer;
+    color: #888; font-size: 20px; line-height: 1; margin-top: -4px;
+  }
+
+  .history-item { padding: 12px 0; border-bottom: 1px solid #2a2a2a; cursor: pointer; }
+  .history-item:last-child { border-bottom: none; }
+  .history-expr { color: #888; font-size: 14px; }
+  .history-result { color: #fff; font-size: 22px; text-align: right; }
+  .history-empty { color: #555; text-align: center; padding: 30px 0; }
+
+  .converter-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .conv-tab {
+    padding: 6px 12px; border-radius: 16px;
+    background: #2a2a2a; color: #aaa;
+    cursor: pointer; font-size: 13px; border: none; transition: all 0.15s;
+  }
+  .conv-tab.active { background: #1db954; color: #fff; }
+  .conv-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .conv-row input {
+    flex: 1; background: #2a2a2a; border: none;
+    border-radius: 10px; padding: 10px 14px;
+    color: #fff; font-size: 18px; outline: none;
+  }
+  .conv-row select {
+    flex: 1; background: #2a2a2a; border: none;
+    border-radius: 10px; padding: 10px 10px;
+    color: #fff; font-size: 14px; outline: none;
+  }
+  .conv-arrow { color: #1db954; font-size: 22px; text-align: center; margin: 4px 0; }
+
+  /* ── POPUP CODE ── */
+  #codeModal .modal { text-align: center; }
+  #codeModal h2 { text-align: center; }
+
+  .code-display {
+    font-size: 36px;
+    letter-spacing: 8px;
+    color: #fff;
+    min-height: 52px;
+    text-align: center;
+    margin: 8px 0 4px;
+    font-weight: 300;
+  }
+  .code-hint {
+    color: #555;
+    font-size: 13px;
+    margin-bottom: 18px;
+    min-height: 18px;
+  }
+  .code-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  .code-btn {
+    height: 58px;
+    border-radius: 14px; border: none;
+    font-size: 24px; font-weight: 400;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    background: #2a2a2a; color: #fff;
+    transition: background 0.12s, transform 0.08s;
+    outline: none; user-select: none;
+  }
+  .code-btn:active { transform: scale(0.95); background: #333; }
+  .code-btn.action-ok {
+    background: #1db954; color: #fff; font-size: 18px; font-weight: 600;
+  }
+  .code-btn.action-ok:active { background: #17a349; }
+  .code-btn.action-del { background: transparent; color: #1db954; font-size: 22px; }
+
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-8px)} 40%{transform:translateX(8px)}
+    60%{transform:translateX(-6px)} 80%{transform:translateX(6px)}
+  }
+  .shake { animation: shake 0.35s ease; }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="display">
+    <div class="expression" id="expression"></div>
+    <div class="main-display" id="mainDisplay">
+      <span id="displayText"></span>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="toolbar-btn" id="btnHistory" title="Historique">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+    </div>
+    <div class="toolbar-btn" id="btnRuler" title="Convertisseur">
+      <svg viewBox="0 0 24 24"><rect x="2" y="8" width="20" height="8" rx="1"/>
+        <line x1="6" y1="8" x2="6" y2="13"/><line x1="10" y1="8" x2="10" y2="11"/>
+        <line x1="14" y1="8" x2="14" y2="13"/><line x1="18" y1="8" x2="18" y2="11"/>
+      </svg>
+    </div>
+    <div class="toolbar-btn" id="btnSci" title="Mode scientifique">
+      <svg viewBox="0 0 24 24">
+        <text x="2" y="16" font-size="9" fill="#666" stroke="none" font-family="monospace">√π</text>
+        <rect x="2" y="2" width="20" height="18" rx="2" stroke="#666" stroke-width="1.5"/>
+        <line x1="2" y1="10" x2="22" y2="10"/>
+      </svg>
+    </div>
+    <div class="toolbar-spacer"></div>
+    <div class="backspace-btn" id="btnBack" title="Effacer">
+      <svg viewBox="0 0 28 22">
+        <path d="M10 2 L2 11 L10 20 L26 20 L26 2 Z"/>
+        <line x1="14" y1="7" x2="22" y2="15"/><line x1="22" y1="7" x2="14" y2="15"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="keypad">
+    <button class="btn red"   id="btnC">C</button>
+    <button class="btn green" id="btnParen">( )</button>
+    <button class="btn green" id="btnPercent">%</button>
+    <button class="btn green" id="btnDiv">÷</button>
+
+    <button class="btn" data-num="7">7</button>
+    <button class="btn" data-num="8">8</button>
+    <button class="btn" data-num="9">9</button>
+    <button class="btn green" id="btnMul">×</button>
+
+    <button class="btn" data-num="4">4</button>
+    <button class="btn" data-num="5">5</button>
+    <button class="btn" data-num="6">6</button>
+    <button class="btn green" id="btnSub">−</button>
+
+    <button class="btn" data-num="1">1</button>
+    <button class="btn" data-num="2">2</button>
+    <button class="btn" data-num="3">3</button>
+    <button class="btn green" id="btnAdd">+</button>
+
+    <button class="btn" id="btnSign">+/−</button>
+    <button class="btn" data-num="0">0</button>
+    <button class="btn" id="btnDot">,</button>
+    <button class="btn equals" id="btnEq">=</button>
+  </div>
+</div>
+
+<!-- MODALS CLASSIQUES -->
+<div class="modal-overlay" id="historyModal">
+  <div class="modal">
+    <span class="modal-close" id="closeHistory">✕</span>
+    <h2>Historique</h2>
+    <div id="historyList"><p class="history-empty">Aucun calcul pour l'instant.</p></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="converterModal">
+  <div class="modal">
+    <span class="modal-close" id="closeConverter">✕</span>
+    <h2>Convertisseur d'unités</h2>
+    <div class="converter-tabs">
+      <button class="conv-tab active" data-cat="length">Longueur</button>
+      <button class="conv-tab" data-cat="mass">Masse</button>
+      <button class="conv-tab" data-cat="temp">Temp.</button>
+      <button class="conv-tab" data-cat="area">Surface</button>
+      <button class="conv-tab" data-cat="speed">Vitesse</button>
+    </div>
+    <div class="conv-row">
+      <input type="number" id="convInput" placeholder="0" oninput="convertUnits()">
+      <select id="convFrom" onchange="convertUnits()"></select>
+    </div>
+    <div class="conv-arrow">⇅</div>
+    <div class="conv-row">
+      <input type="number" id="convOutput" placeholder="0" readonly>
+      <select id="convTo" onchange="convertUnits()"></select>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="sciModal">
+  <div class="modal">
+    <span class="modal-close" id="closeSci">✕</span>
+    <h2>Mode scientifique</h2>
+    <p style="color:#888;font-size:14px;margin-bottom:16px;">Faites pivoter votre appareil en mode paysage pour accéder aux fonctions scientifiques.</p>
+    <div style="text-align:center;font-size:48px;animation:spin 2s linear infinite;display:inline-block;width:100%">↻</div>
+    <style>@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}</style>
+  </div>
+</div>
+
+<!-- POPUP CODE SECRET -->
+<div class="modal-overlay" id="codeModal">
+  <div class="modal">
+    <h2 id="codeTitle">Choisissez votre code</h2>
+    <div class="code-display" id="codeDisplay"></div>
+    <div class="code-hint" id="codeHint">Entrez autant de chiffres que vous souhaitez</div>
+    <div class="code-keypad">
+      <button class="code-btn" data-cd="1">1</button>
+      <button class="code-btn" data-cd="2">2</button>
+      <button class="code-btn" data-cd="3">3</button>
+      <button class="code-btn" data-cd="4">4</button>
+      <button class="code-btn" data-cd="5">5</button>
+      <button class="code-btn" data-cd="6">6</button>
+      <button class="code-btn" data-cd="7">7</button>
+      <button class="code-btn" data-cd="8">8</button>
+      <button class="code-btn" data-cd="9">9</button>
+      <button class="code-btn action-del" id="codeDel">⌫</button>
+      <button class="code-btn" data-cd="0">0</button>
+      <button class="code-btn action-ok" id="codeOk">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════
+//  SYSTÈME CODE SECRET
+// ══════════════════════════
+const STORAGE_KEY = 'calc_secret_pin';
+
+let codeStep   = '';
+let codeBuffer = '';
+let codeFirst  = '';
+
+const codeModal   = document.getElementById('codeModal');
+const codeDisplay = document.getElementById('codeDisplay');
+const codeHint    = document.getElementById('codeHint');
+const codeTitle   = document.getElementById('codeTitle');
+
+function openCodeModal(step) {
+  codeStep = step;
+  codeBuffer = '';
+  codeFirst  = '';
+  codeDisplay.textContent = '';
+  if (step === 'create') {
+    codeTitle.textContent = 'Choisissez votre code';
+    codeHint.textContent  = 'Entrez autant de chiffres que vous souhaitez';
+  } else if (step === 'confirm') {
+    codeTitle.textContent = 'Confirmez votre code';
+    codeHint.textContent  = 'Répétez le même code';
+  } else {
+    codeTitle.textContent = 'Code secret';
+    codeHint.textContent  = 'Entrez votre code pour accéder';
+  }
+  codeModal.classList.add('open');
+}
+
+function closeCodeModal() {
+  codeModal.classList.remove('open');
+}
+
+document.querySelectorAll('.code-btn[data-cd]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    codeBuffer += btn.dataset.cd;
+    codeDisplay.textContent = '•'.repeat(codeBuffer.length);
+    codeHint.textContent = '';
+  });
+});
+
+document.getElementById('codeDel').addEventListener('click', () => {
+  codeBuffer = codeBuffer.slice(0, -1);
+  codeDisplay.textContent = '•'.repeat(codeBuffer.length);
+});
+
+document.getElementById('codeOk').addEventListener('click', () => {
+  if (!codeBuffer) return;
+
+  if (codeStep === 'create') {
+    codeFirst  = codeBuffer;
+    codeBuffer = '';
+    codeDisplay.textContent = '';
+    codeStep = 'confirm';
+    codeTitle.textContent = 'Confirmez votre code';
+    codeHint.textContent  = 'Répétez le même code';
+    return;
+  }
+
+  if (codeStep === 'confirm') {
+    if (codeBuffer === codeFirst) {
+      localStorage.setItem(STORAGE_KEY, codeBuffer);
+      closeCodeModal();
+    } else {
+      codeDisplay.classList.add('shake');
+      setTimeout(() => codeDisplay.classList.remove('shake'), 350);
+      codeHint.textContent = 'Codes différents — recommencez';
+      codeBuffer = ''; codeFirst = '';
+      codeDisplay.textContent = '';
+      codeStep = 'create';
+      codeTitle.textContent = 'Choisissez votre code';
+    }
+    return;
+  }
+
+  // unlock
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (codeBuffer === saved) {
+    closeCodeModal();
+    window.location.href = 'app.html';
+  } else {
+    codeDisplay.classList.add('shake');
+    setTimeout(() => codeDisplay.classList.remove('shake'), 350);
+    codeHint.textContent = 'Code incorrect';
+    codeBuffer = '';
+    codeDisplay.textContent = '';
+  }
+});
+
+// Empêche fermeture en cliquant dehors
+codeModal.addEventListener('click', e => { if (e.target === codeModal) e.stopPropagation(); });
+
+// Au démarrage : popup si pas de code encore
+window.addEventListener('load', () => {
+  if (!localStorage.getItem(STORAGE_KEY)) openCodeModal('create');
+});
+
+// ══════════════════════════
+//  CALCULATRICE
+// ══════════════════════════
+let current    = '';
+let expression = '';
+let justEvaled = false;
+let openParens = 0;
+let history    = [];
+
+let secretBuf = '';   // chiffres tapés (potentiel code)
+let plusCount = 0;    // + consécutifs pour séquence reset
+
+const displayText = document.getElementById('displayText');
+const mainDisplay = document.getElementById('mainDisplay');
+const exprEl      = document.getElementById('expression');
+
+function updateDisplay(val, isResult = false) {
+  displayText.textContent = val;
+  mainDisplay.classList.toggle('result', isResult);
+}
+
+function appendToExpr(ch) {
+  if (justEvaled && /[\d.]/.test(ch)) { expression = ''; current = ''; }
+  justEvaled = false;
+  current += ch;
+  expression += ch;
+  updateDisplay(current.replace('.', ','));
+  exprEl.textContent = expression;
+}
+
+// Numbers
+document.querySelectorAll('[data-num]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const n = btn.dataset.num;
+    plusCount = 0;
+
+    if (justEvaled || expression === '') secretBuf = n;
+    else secretBuf += n;
+
+    if (current === '0' && n !== '.') {
+      current = n;
+      if (justEvaled) { expression = n; justEvaled = false; }
+      else expression = expression.slice(0, -1) + n;
+      updateDisplay(current.replace('.', ','));
+      exprEl.textContent = expression;
+      return;
+    }
+    if (current === '' && n === '0') {
+      current = '0'; expression += '0';
+      updateDisplay('0'); exprEl.textContent = expression;
+      return;
+    }
+    appendToExpr(n);
+  });
+});
+
+// Decimal
+document.getElementById('btnDot').addEventListener('click', () => {
+  plusCount = 0; secretBuf = '';
+  if (current.includes('.')) return;
+  if (current === '' || justEvaled) { current = '0'; expression += '0'; justEvaled = false; }
+  appendToExpr('.');
+  displayText.textContent = current.replace('.', ',');
+});
+
+// Operators
+function addOperator(op, display) {
+  justEvaled = false;
+  expression += op; exprEl.textContent = expression;
+  current = '';
+  updateDisplay(displayText.textContent + ' ' + display);
+  if (op === '+') plusCount++;
+  else plusCount = 0;
+  secretBuf = '';
+}
+
+document.getElementById('btnAdd').addEventListener('click', () => addOperator('+', '+'));
+document.getElementById('btnSub').addEventListener('click', () => addOperator('-', '−'));
+document.getElementById('btnMul').addEventListener('click', () => addOperator('*', '×'));
+document.getElementById('btnDiv').addEventListener('click', () => addOperator('/', '÷'));
+
+// Percent
+document.getElementById('btnPercent').addEventListener('click', () => {
+  plusCount = 0; secretBuf = '';
+  if (current === '' || current === '0') return;
+  const v = parseFloat(current) / 100;
+  expression = expression.slice(0, -current.length) + v;
+  current = String(v); exprEl.textContent = expression;
+  updateDisplay(current.replace('.', ','));
+});
+
+// Sign
+document.getElementById('btnSign').addEventListener('click', () => {
+  plusCount = 0;
+  if (!current || current === '0') return;
+  if (current.startsWith('-')) { current = current.slice(1); expression = expression.slice(1); }
+  else { current = '-' + current; expression = '-' + expression; }
+  updateDisplay(current.replace('.', ',')); exprEl.textContent = expression;
+});
+
+// Parens
+document.getElementById('btnParen').addEventListener('click', () => {
+  plusCount = 0; secretBuf = '';
+  if (openParens === 0 || /[+\-*/( ]$/.test(expression) || expression === '') {
+    appendToExpr('('); openParens++;
+  } else {
+    appendToExpr(')'); if (openParens > 0) openParens--;
+  }
+});
+
+// Backspace
+function doBackspace() {
+  plusCount = 0; secretBuf = '';
+  if (justEvaled) { clear(); return; }
+  if (expression === '') return;
+  const last = expression.slice(-1);
+  if (last === '(') openParens--;
+  if (last === ')') openParens++;
+  expression = expression.slice(0, -1);
+  if (current.length > 0) current = current.slice(0, -1);
+  if (expression === '' || current === '') { current = ''; updateDisplay(''); }
+  else updateDisplay(current.replace('.', ','));
+  exprEl.textContent = expression;
+}
+document.getElementById('btnBack').addEventListener('click', doBackspace);
+
+// Clear
+function clear() {
+  current = ''; expression = ''; justEvaled = false; openParens = 0;
+  secretBuf = ''; plusCount = 0;
+  updateDisplay(''); exprEl.textContent = '';
+  mainDisplay.classList.remove('result');
+}
+document.getElementById('btnC').addEventListener('click', clear);
+
+// Equals
+document.getElementById('btnEq').addEventListener('click', () => {
+
+  // 1. Séquence reset : 5+ consécutifs puis =
+  if (plusCount >= 5) {
+    clear();
+    localStorage.removeItem(STORAGE_KEY);
+    openCodeModal('create');
+    return;
+  }
+
+  // 2. Code secret : chiffres tapés seuls = code sauvegardé
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved && secretBuf === saved && expression === saved) {
+    clear();
+    openCodeModal('unlock');
+    return;
+  }
+
+  // 3. Calcul normal
+  if (expression === '') return;
+  let expr = expression;
+  let op = openParens;
+  while (op-- > 0) expr += ')';
+  openParens = 0;
+
+  try {
+    const result = Function('"use strict"; return (' + expr + ')')();
+    const display = String(+result.toFixed(10)).replace('.', ',');
+    history.unshift({ expr: expression, result: display });
+    if (history.length > 50) history.pop();
+    exprEl.textContent = expression + ' =';
+    expression = String(result);
+    current = String(result);
+    updateDisplay(display, true);
+    justEvaled = true;
+  } catch(e) {
+    exprEl.textContent = expression;
+    updateDisplay('Erreur', false);
+    mainDisplay.style.color = '#e05c5c';
+    setTimeout(() => { clear(); mainDisplay.style.color = ''; }, 1000);
+  }
+
+  secretBuf = ''; plusCount = 0;
+});
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (codeModal.classList.contains('open')) return;
+  if (e.key >= '0' && e.key <= '9') document.querySelector(`[data-num="${e.key}"]`)?.click();
+  else if (e.key === '+') document.getElementById('btnAdd').click();
+  else if (e.key === '-') document.getElementById('btnSub').click();
+  else if (e.key === '*') document.getElementById('btnMul').click();
+  else if (e.key === '/') { e.preventDefault(); document.getElementById('btnDiv').click(); }
+  else if (e.key === '%') document.getElementById('btnPercent').click();
+  else if (e.key === '.' || e.key === ',') document.getElementById('btnDot').click();
+  else if (e.key === 'Enter' || e.key === '=') document.getElementById('btnEq').click();
+  else if (e.key === 'Backspace') doBackspace();
+  else if (e.key === 'Escape') clear();
+  else if (e.key === '(' || e.key === ')') document.getElementById('btnParen').click();
+});
+
+// History
+document.getElementById('btnHistory').addEventListener('click', () => {
+  renderHistory();
+  document.getElementById('historyModal').classList.add('open');
+});
+document.getElementById('closeHistory').addEventListener('click', () =>
+  document.getElementById('historyModal').classList.remove('open'));
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (!history.length) { list.innerHTML = '<p class="history-empty">Aucun calcul pour l\'instant.</p>'; return; }
+  list.innerHTML = history.map((h, i) => `
+    <div class="history-item" onclick="recallHistory(${i})">
+      <div class="history-expr">${h.expr} =</div>
+      <div class="history-result">${h.result}</div>
+    </div>`).join('');
+}
+
+function recallHistory(i) {
+  const h = history[i];
+  current = h.result.replace(',', '.');
+  expression = current; exprEl.textContent = '';
+  updateDisplay(h.result, false);
+  justEvaled = true;
+  document.getElementById('historyModal').classList.remove('open');
+}
+
+// Converter
+const units = {
+  length: { m:'Mètre', km:'Kilomètre', cm:'Centimètre', mm:'Millimètre', mi:'Mile', yd:'Yard', ft:'Pied', in:'Pouce' },
+  mass:   { kg:'Kilogramme', g:'Gramme', mg:'Milligramme', lb:'Livre', oz:'Once', t:'Tonne' },
+  temp:   { C:'Celsius', F:'Fahrenheit', K:'Kelvin' },
+  area:   { m2:'m²', km2:'km²', cm2:'cm²', ha:'Hectare', ac:'Acre', ft2:'ft²' },
+  speed:  { mps:'m/s', kph:'km/h', mph:'mph', kn:'Nœud' }
+};
+const toSI = {
+  length: { m:1, km:1000, cm:0.01, mm:0.001, mi:1609.344, yd:0.9144, ft:0.3048, in:0.0254 },
+  mass:   { kg:1, g:0.001, mg:0.000001, lb:0.453592, oz:0.0283495, t:1000 },
+  area:   { m2:1, km2:1e6, cm2:0.0001, ha:10000, ac:4046.86, ft2:0.092903 },
+  speed:  { mps:1, kph:1/3.6, mph:0.44704, kn:0.514444 }
+};
+
+function populateSelects(cat) {
+  ['convFrom','convTo'].forEach((id, idx) => {
+    const el = document.getElementById(id);
+    const keys = Object.keys(units[cat]);
+    el.innerHTML = keys.map(k => `<option value="${k}">${units[cat][k]}</option>`).join('');
+    if (idx === 1 && keys.length > 1) el.selectedIndex = 1;
+  });
+}
+
+let currentCat = 'length';
+document.querySelectorAll('.conv-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.conv-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentCat = tab.dataset.cat;
+    populateSelects(currentCat);
+    convertUnits();
+  });
+});
+
+function convertUnits() {
+  const val  = parseFloat(document.getElementById('convInput').value);
+  const from = document.getElementById('convFrom').value;
+  const to   = document.getElementById('convTo').value;
+  const out  = document.getElementById('convOutput');
+  if (isNaN(val)) { out.value = ''; return; }
+  let result;
+  if (currentCat === 'temp') {
+    let c;
+    if (from==='C') c=val; else if (from==='F') c=(val-32)*5/9; else c=val-273.15;
+    if (to==='C') result=c; else if (to==='F') result=c*9/5+32; else result=c+273.15;
+  } else {
+    const table = toSI[currentCat];
+    result = val * table[from] / table[to];
+  }
+  out.value = +result.toFixed(8);
+}
+
+document.getElementById('btnRuler').addEventListener('click', () => {
+  populateSelects(currentCat); convertUnits();
+  document.getElementById('converterModal').classList.add('open');
+});
+document.getElementById('closeConverter').addEventListener('click', () =>
+  document.getElementById('converterModal').classList.remove('open'));
+
+document.getElementById('btnSci').addEventListener('click', () =>
+  document.getElementById('sciModal').classList.add('open'));
+document.getElementById('closeSci').addEventListener('click', () =>
+  document.getElementById('sciModal').classList.remove('open'));
+
+['historyModal','converterModal','sciModal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+});
+
+populateSelects('length');
+</script>
+</body>
+</html>
